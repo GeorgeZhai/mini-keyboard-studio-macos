@@ -3,7 +3,9 @@ set -euo pipefail
 
 SCRIPT_DIR=${0:A:h}
 PROJECT_DIR=${SCRIPT_DIR:h}
-APP_DIR="$PROJECT_DIR/dist/Mini Keyboard Studio.app"
+OUTPUT_APP_DIR="$PROJECT_DIR/dist/Mini Keyboard Studio.app"
+STAGING_ROOT=$(mktemp -d)
+APP_DIR="$STAGING_ROOT/Mini Keyboard Studio.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
@@ -13,6 +15,11 @@ ICON_TOOL="$PROJECT_DIR/.build/make-icon"
 ARM_BUILD_DIR="$PROJECT_DIR/.build/arm64"
 INTEL_BUILD_DIR="$PROJECT_DIR/.build/x86_64"
 SIGNING_IDENTITY=${DEVELOPER_ID_APPLICATION:-}
+
+cleanup() {
+    rm -rf "$STAGING_ROOT"
+}
+trap cleanup EXIT
 
 cd "$PROJECT_DIR"
 swift build \
@@ -40,7 +47,7 @@ INTEL_BIN_DIR=$(swift build \
     --triple x86_64-apple-macosx \
     --show-bin-path)
 
-rm -rf "$APP_DIR" "$ICONSET_DIR"
+rm -rf "$ICONSET_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR" "$ICONSET_DIR"
 
 lipo -create \
@@ -72,4 +79,8 @@ else
 fi
 codesign --verify --deep --strict "$APP_DIR"
 
-echo "$APP_DIR"
+rm -rf "$OUTPUT_APP_DIR"
+ditto "$APP_DIR" "$OUTPUT_APP_DIR"
+codesign --verify --deep --strict "$OUTPUT_APP_DIR"
+
+echo "$OUTPUT_APP_DIR"
