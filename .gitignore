@@ -2,6 +2,29 @@
 .swiftpm/
 dist/
 .DS_Store
+
+# Xcode per-user state and local build products
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.xcarchive
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# Local configuration and signing credentials
 .env
+.env.*
+!.env.example
+Local.xcconfig
+Secrets.xcconfig
 *.p8
 *.p12
+*.pem
+*.key
+*.cer
+*.crt
+*.der
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
