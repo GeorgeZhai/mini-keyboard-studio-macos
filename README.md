@@ -9,7 +9,7 @@ This project was built against a keypad connected to macOS as **USB
 ## Download
 
 Download the prebuilt universal app from
-[release/Mini-Keyboard-Studio-1.1.dmg](release/Mini-Keyboard-Studio-1.1.dmg).
+[release/Mini-Keyboard-Studio-1.2.dmg](release/Mini-Keyboard-Studio-1.2.dmg).
 It supports both Apple Silicon and Intel Macs running macOS 13 or newer.
 
 ## The short answer about drivers
@@ -30,7 +30,7 @@ lives in the keypad and the app can be closed or removed.
 - Three known `1189:8890` firmware protocols
 - Edit every displayed control, then save the complete mapping in one action
 - Safe mapping writes; no firmware or hardware-variant commands
-- Local draft persistence because this model cannot read mappings back
+- Clearly labeled local draft because this model cannot read mappings back
 
 ## Build and run
 
@@ -116,10 +116,12 @@ To check the device without writing anything:
 ```sh
 swift run -c release MiniKeyboardDiag --probe-only
 swift run -c release MiniKeyboardDiag
+swift run -c release MiniKeyboardDiag --readback-probe
 ```
 
 The second command opens interface 1 and endpoint `0x02`, then closes them
-without sending a report.
+without sending a report. The readback probe issues standard read-only HID
+requests and does not change any mapping.
 
 ## Using the app
 
@@ -140,8 +142,11 @@ See [Docs/PROTOCOL.md](Docs/PROTOCOL.md) for the USB inspection and safety notes
 ## Important limitation
 
 This hardware's configuration interface is output-only. It cannot return its
-existing mappings, so the UI starts with a useful local draft rather than
-claiming to show what is already stored on the device.
+existing mappings. On the tested unit, standard input, output, and feature
+`GET_REPORT` requests each return only the one-byte acknowledgement `AA`, not a
+64-byte mapping report. The UI therefore labels its values as a **local draft**.
+Choosing **Save All to Keypad** overwrites every displayed control with that
+draft.
 
 ## License
 

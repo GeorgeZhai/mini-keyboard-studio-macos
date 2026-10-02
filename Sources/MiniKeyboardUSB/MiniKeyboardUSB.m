@@ -206,6 +206,65 @@ int32_t MKUSBGetReportDescriptor(
     return 0;
 }
 
+int32_t MKUSBGetReport(
+    uint8_t reportType,
+    uint8_t reportID,
+    uint8_t *report,
+    size_t reportCapacity,
+    size_t *reportLength,
+    char *message,
+    size_t messageCapacity
+) {
+    if (reportType < kHIDRtInputReport || reportType > kHIDRtFeatureReport ||
+        report == NULL || reportCapacity == 0 || reportLength == NULL) {
+        MKCopyMessage(message, messageCapacity, @"Invalid HID GET_REPORT arguments.");
+        return -2;
+    }
+
+    NSString *failure = nil;
+    IOUSBHostPipe *pipe = nil;
+    IOUSBHostInterface *interface = MKOpenConfigurationInterface(&pipe, &failure);
+    if (interface == nil) {
+        MKCopyMessage(message, messageCapacity, failure ?: @"USB access failed.");
+        return -1;
+    }
+
+    NSUInteger requestedLength = MIN(reportCapacity, UINT16_MAX);
+    IOUSBDeviceRequest request = {
+        .bmRequestType = USBmakebmRequestType(kUSBIn, kUSBClass, kUSBInterface),
+        .bRequest = kHIDRqGetReport,
+        .wValue = HostToUSBWord((((uint16_t)reportType) << 8) | reportID),
+        .wIndex = HostToUSBWord(kMiniKeyboardInterfaceNumber),
+        .wLength = HostToUSBWord((uint16_t)requestedLength)
+    };
+    NSMutableData *data = [NSMutableData dataWithLength:requestedLength];
+    NSUInteger transferred = 0;
+    NSError *readError = nil;
+    BOOL success = [interface sendDeviceRequest:request
+                                           data:data
+                               bytesTransferred:&transferred
+                              completionTimeout:1.0
+                                          error:&readError];
+    if (!success) {
+        MKCopyMessage(message, messageCapacity,
+                      [NSString stringWithFormat:@"HID GET_REPORT type %u failed: %@",
+                          reportType,
+                          readError.localizedDescription ?: @"not supported"]);
+        pipe = nil;
+        [interface destroy];
+        return -3;
+    }
+
+    memcpy(report, data.bytes, transferred);
+    *reportLength = transferred;
+    pipe = nil;
+    [interface destroy];
+    MKCopyMessage(message, messageCapacity,
+                  [NSString stringWithFormat:@"Read %lu bytes from HID report type %u.",
+                      (unsigned long)transferred, reportType]);
+    return 0;
+}
+
 int32_t MKUSBSendReports(
     const uint8_t *reports,
     size_t reportCount,

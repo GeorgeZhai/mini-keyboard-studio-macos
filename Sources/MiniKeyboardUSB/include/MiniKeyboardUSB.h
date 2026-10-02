@@ -25,6 +25,18 @@ int32_t MKUSBGetReportDescriptor(
     size_t messageCapacity
 );
 
+/// Attempts a standard HID GET_REPORT request on configuration interface 1.
+/// This is read-only. `reportType` is 1=input, 2=output, or 3=feature.
+int32_t MKUSBGetReport(
+    uint8_t reportType,
+    uint8_t reportID,
+    uint8_t *report,
+    size_t reportCapacity,
+    size_t *reportLength,
+    char *message,
+    size_t messageCapacity
+);
+
 /// Sends `reportCount` contiguous, `reportLength`-byte interrupt-OUT reports.
 /// Returns 0 on success. The caller must pass fully framed HID reports.
 int32_t MKUSBSendReports(

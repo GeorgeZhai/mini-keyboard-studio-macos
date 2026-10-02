@@ -49,6 +49,12 @@ be read back. The app keeps the draft locally and writes every control displayed
 for the selected layout in one save operation. Each control still uses its own
 firmware commit report inside that batch.
 
+A read-only probe of standard HID input, output, and feature `GET_REPORT`
+requests on report ID `0x03` returned a single `AA` byte for every type. That is
+an acknowledgement stub, not the descriptor's 64-byte configuration payload,
+so it cannot describe the stored controls. No known read command is used by the
+linked Windows utility or the compatible open-source implementations.
+
 ## Safety choices
 
 Mini Keyboard Studio never sends:

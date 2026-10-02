@@ -161,4 +161,28 @@ public struct USBTransport: Sendable {
     }
     throw USBTransportError.unavailable("The configuration interface has no HID output report.")
   }
+
+  public func readConfigurationReport(
+    type: UInt8,
+    reportID: UInt8 = ProtocolEncoder.reportID,
+    capacity: Int = Self.reportLength
+  ) throws -> [UInt8] {
+    var report = [UInt8](repeating: 0, count: capacity)
+    var reportLength = 0
+    var message = [CChar](repeating: 0, count: 512)
+    let result = MKUSBGetReport(
+      type,
+      reportID,
+      &report,
+      report.count,
+      &reportLength,
+      &message,
+      message.count
+    )
+    guard result == 0 else {
+      throw USBTransportError.unavailable(decodedMessage(message))
+    }
+    report.removeSubrange(reportLength..<report.count)
+    return report
+  }
 }

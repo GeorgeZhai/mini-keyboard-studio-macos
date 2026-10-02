@@ -1,6 +1,36 @@
 import Foundation
 import MiniKeyboardCore
 
+if CommandLine.arguments.contains("--readback-probe") {
+  let transport = USBTransport()
+  let reportTypes: [(name: String, value: UInt8)] = [
+    ("input", 1),
+    ("output", 2),
+    ("feature", 3),
+  ]
+  var mappingSizedReports = 0
+
+  for reportType in reportTypes {
+    do {
+      let report = try transport.readConfigurationReport(type: reportType.value)
+      let bytes = report.map { String(format: "%02X", $0) }.joined(separator: " ")
+      print("\(reportType.name): \(report.count) bytes: \(bytes)")
+      if report.count >= ProtocolEncoder.reportLength - 1 {
+        mappingSizedReports += 1
+      }
+    } catch {
+      print("\(reportType.name): unavailable: \(error.localizedDescription)")
+    }
+  }
+
+  if mappingSizedReports == 0 {
+    print("no usable mapping readback: the device returned no mapping-sized HID report")
+  } else {
+    print("mapping-sized reports found; their contents still require protocol validation")
+  }
+  exit(EXIT_SUCCESS)
+}
+
 if CommandLine.arguments.contains("--apply-starter-preset") {
   let transport = USBTransport()
   let encoder = ProtocolEncoder()

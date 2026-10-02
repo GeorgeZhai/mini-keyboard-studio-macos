@@ -136,13 +136,33 @@ private struct PadPanel: View {
 
       PadPreview(model: model)
 
+      Label {
+        VStack(alignment: .leading, spacing: 2) {
+          Text("Local draft")
+            .font(.caption.weight(.semibold))
+          Text(
+            "This keypad cannot return its stored mappings. Values shown here are not read from the device."
+          )
+          .fixedSize(horizontal: false, vertical: true)
+        }
+      } icon: {
+        Image(systemName: "exclamationmark.arrow.triangle.2.circlepath")
+          .foregroundStyle(.orange)
+      }
+      .font(.caption)
+      .foregroundStyle(.secondary)
+      .padding(12)
+      .background(.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+
       Spacer(minLength: 8)
 
       BacklightCard(model: model)
 
       Label {
-        Text("Mappings are stored in the keypad. It keeps working after this app quits.")
-          .fixedSize(horizontal: false, vertical: true)
+        Text(
+          "After Save All, mappings are stored in the keypad and keep working after this app quits."
+        )
+        .fixedSize(horizontal: false, vertical: true)
       } icon: {
         Image(systemName: "externaldrive.badge.checkmark")
           .foregroundStyle(.green)
@@ -351,7 +371,7 @@ private struct InspectorPanel: View {
             VStack(alignment: .leading, spacing: 4) {
               Text(model.selectedTarget.title)
                 .font(.title.weight(.semibold))
-              Text("Layer \(model.selectedLayer) · Device slot \(model.selectedSlot)")
+              Text("Local draft · Layer \(model.selectedLayer) · Device slot \(model.selectedSlot)")
                 .foregroundStyle(.secondary)
             }
             Spacer()
@@ -383,8 +403,8 @@ private struct InspectorPanel: View {
             .font(.callout.weight(.medium))
           Text(
             model.keyboardProtocol.supportsLayers
-              ? "Applies the complete Layer \(model.selectedLayer) draft."
-              : "Edit every key and knob action, then save once."
+              ? "Writes the complete local Layer \(model.selectedLayer) draft."
+              : "Writes this local draft; it does not read the existing mappings."
           )
           .font(.caption)
           .foregroundStyle(.secondary)
@@ -586,7 +606,7 @@ private struct ProtocolCard: View {
           .font(.caption)
           .foregroundStyle(.secondary)
         Text(
-          "This hardware has no configuration read-back. If a saved key does not change, try Layered 8890, then FE preamble, and save that control again."
+          "This hardware has no configuration read-back. If a saved key does not change, try Layered 8890, then FE preamble, and save all controls again."
         )
         .font(.caption)
         .foregroundStyle(.secondary)
