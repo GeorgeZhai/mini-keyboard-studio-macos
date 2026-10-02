@@ -6,6 +6,12 @@ the Windows-only “MINI KeyBoard V02.1.1” utility.
 This project was built against a keypad connected to macOS as **USB
 `1189:8890`**. It uses Apple's built-in USB stack and has no runtime dependency.
 
+## Download
+
+Download the prebuilt universal app from
+[release/Mini-Keyboard-Studio-1.0.dmg](release/Mini-Keyboard-Studio-1.0.dmg).
+It supports both Apple Silicon and Intel Macs running macOS 13 or newer.
+
 ## The short answer about drivers
 
 The keypad does **not** need a custom Mac driver for normal use. macOS already
@@ -42,9 +48,9 @@ create the same compressed disk image used for GitHub releases:
 ./scripts/build-dmg.sh
 ```
 
-The versioned DMG is written to `dist/`. Build products are intentionally
-ignored by Git and should be attached to a GitHub Release rather than committed
-to the source repository.
+The versioned DMG is written to `dist/`. Local build products are ignored by
+Git; selected release builds may be copied into `release/` for direct download
+and attached to a GitHub Release.
 
 The app is ad-hoc signed for local use. It is deliberately not sandboxed,
 because it needs direct user-space access to the output-only configuration
