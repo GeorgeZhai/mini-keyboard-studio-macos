@@ -133,6 +133,24 @@ private func testProtocolEncoder() throws {
   checkReport(
     disabled[1], startsWith: [0x03, 0x01, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00], "disabled key")
 
+  let batch = try encoder.reports(
+    for: [
+      (slot: 1, assignment: KeyAssignment(kind: .media, mediaAction: .mute)),
+      (slot: 2, assignment: KeyAssignment(kind: .media, mediaAction: .volumeDown)),
+    ],
+    layer: 1,
+    protocol: .vendorV0211
+  )
+  check(batch.count == 4, "save-all batch report count")
+  checkReport(
+    batch[0], startsWith: [0x03, 0x01, 0x02, 0xE2, 0x00, 0x00, 0x00, 0x00, 0x00],
+    "save-all first control")
+  checkReport(batch[1], startsWith: [0x03, 0xAA, 0xAA], "save-all first commit")
+  checkReport(
+    batch[2], startsWith: [0x03, 0x02, 0x02, 0xEA, 0x00, 0x00, 0x00, 0x00, 0x00],
+    "save-all second control")
+  checkReport(batch[3], startsWith: [0x03, 0xAA, 0xAA], "save-all second commit")
+
   let vendorLight = encoder.backlightReports(mode: 9, protocol: .vendorV0211)
   checkReport(vendorLight[0], startsWith: [0x03, 0xB0, 0x08, 0x02], "vendor backlight clamp")
   checkReport(vendorLight[1], startsWith: [0x03, 0xAA, 0xA1], "backlight commit")

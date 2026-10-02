@@ -175,19 +175,34 @@ private struct PadPreview: View {
   }
 
   var body: some View {
-    VStack(spacing: 16) {
-      LazyVGrid(
-        columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: model.layout.columns),
-        spacing: 10
-      ) {
-        ForEach(buttons) { target in
-          PadKeyButton(target: target, model: model)
+    Group {
+      if model.layout == .threeKeysOneKnob {
+        HStack(alignment: .center, spacing: 9) {
+          ForEach(buttons) { target in
+            PadKeyButton(target: target, model: model, compact: true)
+          }
+          if let knobTargets = knobs.first {
+            KnobControl(index: 1, targets: knobTargets, model: model, compact: true)
+              .frame(width: 100)
+          }
         }
-      }
+      } else {
+        VStack(spacing: 16) {
+          LazyVGrid(
+            columns: Array(
+              repeating: GridItem(.flexible(), spacing: 10), count: model.layout.columns),
+            spacing: 10
+          ) {
+            ForEach(buttons) { target in
+              PadKeyButton(target: target, model: model)
+            }
+          }
 
-      HStack(spacing: 18) {
-        ForEach(Array(knobs.enumerated()), id: \.offset) { index, targets in
-          KnobControl(index: index + 1, targets: targets, model: model)
+          HStack(spacing: 18) {
+            ForEach(Array(knobs.enumerated()), id: \.offset) { index, targets in
+              KnobControl(index: index + 1, targets: targets, model: model)
+            }
+          }
         }
       }
     }
@@ -207,6 +222,7 @@ private struct PadPreview: View {
 private struct PadKeyButton: View {
   let target: ControlTarget
   @ObservedObject var model: AppModel
+  var compact = false
 
   private var selected: Bool { model.selectedSlot == target.slot }
 
@@ -222,7 +238,7 @@ private struct PadKeyButton: View {
           .lineLimit(1)
           .foregroundStyle(selected ? .white.opacity(0.82) : .secondary)
       }
-      .frame(maxWidth: .infinity, minHeight: 58)
+      .frame(maxWidth: .infinity, minHeight: compact ? 76 : 58)
       .padding(.horizontal, 6)
       .foregroundStyle(selected ? .white : .primary)
       .background(
@@ -242,6 +258,7 @@ private struct KnobControl: View {
   let index: Int
   let targets: [ControlTarget]
   @ObservedObject var model: AppModel
+  var compact = false
 
   var body: some View {
     VStack(spacing: 8) {
@@ -264,7 +281,7 @@ private struct KnobControl: View {
           .font(.caption.weight(.bold))
           .offset(y: 8)
       }
-      .frame(width: 76, height: 76)
+      .frame(width: compact ? 66 : 76, height: compact ? 66 : 76)
 
       HStack(spacing: 5) {
         ForEach(targets) { target in
@@ -307,7 +324,7 @@ private struct BacklightCard: View {
         .labelsHidden()
         .frame(width: 110)
       }
-      Button("Save Backlight") { model.writeBacklight() }
+      Button("Apply Backlight") { model.writeBacklight() }
         .buttonStyle(.bordered)
         .disabled(!model.isConnected || model.isWriting)
     }
@@ -361,17 +378,26 @@ private struct InspectorPanel: View {
 
       Divider()
       HStack {
-        Label("Writes only this control", systemImage: "checkmark.shield")
+        VStack(alignment: .leading, spacing: 2) {
+          Label("Save all \(model.targets.count) controls", systemImage: "checkmark.shield")
+            .font(.callout.weight(.medium))
+          Text(
+            model.keyboardProtocol.supportsLayers
+              ? "Applies the complete Layer \(model.selectedLayer) draft."
+              : "Edit every key and knob action, then save once."
+          )
           .font(.caption)
           .foregroundStyle(.secondary)
+        }
         Spacer()
         Button {
-          model.writeSelectedControl()
+          model.writeAllControls()
         } label: {
           Label(
-            model.isWriting ? "Saving…" : "Save to Keypad", systemImage: "square.and.arrow.down"
+            model.isWriting ? "Saving…" : "Save All to Keypad",
+            systemImage: "square.and.arrow.down"
           )
-          .frame(minWidth: 130)
+          .frame(minWidth: 150)
         }
         .buttonStyle(.borderedProminent)
         .controlSize(.large)

@@ -12,6 +12,7 @@ BASE_ICON="$PROJECT_DIR/.build/AppIcon-1024.png"
 ICON_TOOL="$PROJECT_DIR/.build/make-icon"
 ARM_BUILD_DIR="$PROJECT_DIR/.build/arm64"
 INTEL_BUILD_DIR="$PROJECT_DIR/.build/x86_64"
+SIGNING_IDENTITY=${DEVELOPER_ID_APPLICATION:-}
 
 cd "$PROJECT_DIR"
 swift build \
@@ -59,7 +60,16 @@ done
 
 iconutil -c icns "$ICONSET_DIR" -o "$RESOURCES_DIR/AppIcon.icns"
 xattr -cr "$APP_DIR"
-codesign --force --deep --sign - "$APP_DIR" >/dev/null
+if [[ -n "$SIGNING_IDENTITY" ]]; then
+    codesign \
+        --force \
+        --options runtime \
+        --timestamp \
+        --sign "$SIGNING_IDENTITY" \
+        "$APP_DIR"
+else
+    codesign --force --sign - "$APP_DIR" >/dev/null
+fi
 codesign --verify --deep --strict "$APP_DIR"
 
 echo "$APP_DIR"

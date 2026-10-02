@@ -25,6 +25,21 @@ public struct ProtocolEncoder: Sendable {
   public init() {}
 
   public func reports(
+    for controls: [(slot: UInt8, assignment: KeyAssignment)],
+    layer: Int,
+    protocol selectedProtocol: KeyboardProtocol
+  ) throws -> [[UInt8]] {
+    try controls.flatMap { control in
+      try reports(
+        slot: control.slot,
+        layer: layer,
+        assignment: control.assignment,
+        protocol: selectedProtocol
+      )
+    }
+  }
+
+  public func reports(
     slot: UInt8,
     layer: Int,
     assignment: KeyAssignment,

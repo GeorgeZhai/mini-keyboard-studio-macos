@@ -95,7 +95,7 @@ final class AppModel: ObservableObject {
     setAssignment(preset.assignment)
   }
 
-  func writeSelectedControl() {
+  func writeAllControls() {
     guard isConnected else {
       notice = Notice(kind: .error, text: "The configuration interface is not connected.")
       return
@@ -104,10 +104,12 @@ final class AppModel: ObservableObject {
     isWriting = true
     defer { isWriting = false }
     do {
+      let controls = targets.map { target in
+        (slot: target.slot, assignment: assignment(slot: target.slot))
+      }
       let reports = try encoder.reports(
-        slot: selectedSlot,
+        for: controls,
         layer: selectedLayer,
-        assignment: assignment(),
         protocol: keyboardProtocol
       )
       try transport.send(reports)
@@ -117,7 +119,7 @@ final class AppModel: ObservableObject {
         : ""
       notice = Notice(
         kind: .success,
-        text: "Saved \(selectedTarget.title)\(layerDescription) to the keypad."
+        text: "Saved all \(targets.count) controls\(layerDescription) to the keypad."
       )
     } catch {
       notice = Notice(kind: .error, text: error.localizedDescription)

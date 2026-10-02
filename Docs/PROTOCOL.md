@@ -45,8 +45,9 @@ Keys use slots 1–12. Knob actions use 13/14/15 for left/press/right on knob 1
 and 16/17/18 on knob 2. Shortcuts can contain up to five HID key steps.
 
 The configuration interface has no input endpoint, so current mappings cannot
-be read back. The app therefore writes one selected control at a time and keeps
-the draft locally.
+be read back. The app keeps the draft locally and writes every control displayed
+for the selected layout in one save operation. Each control still uses its own
+firmware commit report inside that batch.
 
 ## Safety choices
 
